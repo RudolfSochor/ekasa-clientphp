@@ -11,9 +11,11 @@ use NineDigit\eKasa\Client\Models\Connectivity\ConnectivityMonitorStatusDto;
 use NineDigit\eKasa\Client\Models\EKasaProductInfoDto;
 use NineDigit\eKasa\Client\Models\Identities\IdentityDto;
 use NineDigit\eKasa\Client\Models\IndexTable\IndexTableStatusDto;
+use NineDigit\eKasa\Client\Models\Printers\OpenDrawerResultDto;
 use NineDigit\eKasa\Client\Models\Printers\PrinterStatusDto;
 use NineDigit\eKasa\Client\Models\Printers\PrintResultDto;
 use NineDigit\eKasa\Client\Models\Printers\TextPrintContextDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationRequestDto;
 use NineDigit\eKasa\Client\Models\Registrations\Receipts\RegisterReceiptRequestContextDto;
 use NineDigit\eKasa\Client\Models\Registrations\Receipts\RegisterReceiptResultDto;
 use NineDigit\eKasa\Client\Models\Storage\StorageInfoDto;
@@ -56,6 +58,7 @@ final class ApiClient
 
     /**
      * TODO
+     * @return CertificateInfoDto
      */
     public function addCertificate(CertificateDto $certificate): CertificateInfoDto
     {
@@ -167,6 +170,17 @@ final class ApiClient
             ->build();
         return $this->httpClient->receive($apiRequest, PrintResultDto::class);
     }
+    public function addOpenDrawer(OpenDrawerResultDto $opened): OpenDrawerResultDto
+    {
+        $apiRequest = ApiRequestBuilder::createPost("/v1/printers/open_drawer")
+            ->withPayload($opened)
+            ->build();
+        return $this->httpClient->receive($apiRequest, OpenDrawerResultDto::class);
+    }
+
+    /**
+     * TODO
+     */
 
     // Product
 
@@ -192,6 +206,12 @@ final class ApiClient
     }
 
     // Registrations
+
+    public function getLatestLocations(): array
+    {
+        $apiRequest = ApiRequestBuilder::createGet("/v1/requests/locations/current")->build();
+        return $this->httpClient->receive($apiRequest, LocationRegistrationRequestDto::class);
+    }
 
     /**
      * Zadá požiadavku na zaregistrovanie dokladu.

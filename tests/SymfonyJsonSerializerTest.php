@@ -28,12 +28,236 @@ use NineDigit\eKasa\Client\Models\Registrations\Receipts\ReceiptType;
 use NineDigit\eKasa\Client\Models\SellerDto;
 use NineDigit\eKasa\Client\Models\SellerIdType;
 use NineDigit\eKasa\Client\ApiErrorCode;
+use NineDigit\eKasa\Client\Models\Certificates\CertificateInfoDto;
+use NineDigit\eKasa\Client\Models\Connectivity\ConnectivityMonitorStatusDto;
+use NineDigit\eKasa\Client\Models\Identities\IdentityDto;
+use NineDigit\eKasa\Client\Models\IndexTable\IndexTableStatusDto;
+use NineDigit\eKasa\Client\Models\Printers\OpenDrawerResultDto;
+use NineDigit\eKasa\Client\Models\Printers\PrinterStatus;
+use NineDigit\eKasa\Client\Models\Printers\PrinterStatusDto;
+use NineDigit\eKasa\Client\Models\Printers\PrintResultDto;
 use NineDigit\eKasa\Client\Models\ProblemDetails;
+use NineDigit\eKasa\Client\Models\Product\EKasaProductInfoDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationRequestDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationResposneDto;
+use NineDigit\eKasa\Client\Models\Storage\StorageInfoDto;
 use NineDigit\eKasa\Client\Models\ValidationProblemDetails;
 use NineDigit\eKasa\Client\Serialization\SymfonyJsonSerializer;
+use phpDocumentor\Reflection\Types\Boolean;
 
 final class SymfonyJsonSerializerTest extends TestCase
 {
+    public function testCertificateInfoDtoArrayDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '[
+            {
+                "alias": "88812345678900001",
+                "cashRegisterCode": "88812345678900001",
+                "issueDate": "2022-12-07T14:57:39+01:00",
+                "expirationDate": "2024-12-06T14:57:39+01:00",
+                "serialNumber": "013B27B82DDBEDD1F74606000000000000000045",
+                "isExpired": false
+            }
+        ]';
+
+        $a = $serializer->deserialize($json, CertificateInfoDto::class);
+
+        $this->assertIsArray($a);
+        $this->assertCount(1, $a);
+        $this->assertInstanceOf(CertificateInfoDto::class, $a[0]);
+
+        $this->assertEquals("88812345678900001", $a[0]->alias);
+        $this->assertEquals("88812345678900001", $a[0]->cashRegisterCode);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2022, 12, 7, 14, 57, 39), $a[0]->issueDate);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2024, 12, 6, 14, 57, 39), $a[0]->expirationDate);
+        $this->assertEquals("013B27B82DDBEDD1F74606000000000000000045", $a[0]->serialNumber);
+        $this->assertFalse($a[0]->isExpired);
+    }
+
+    public function testCertificateInfoDtoDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "alias": "88812345678900001",
+            "cashRegisterCode": "88812345678900001",
+            "issueDate": "2022-12-07T14:57:39+01:00",
+            "expirationDate": "2024-12-06T14:57:39+01:00",
+            "serialNumber": "013B27B82DDBEDD1F74606000000000000000045",
+            "isExpired": false
+        }';
+
+        $o = $serializer->deserialize($json, CertificateInfoDto::class);
+
+        $this->assertInstanceOf(CertificateInfoDto::class, $o);
+        $this->assertEquals("88812345678900001", $o->alias);
+        $this->assertEquals("88812345678900001", $o->cashRegisterCode);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2022, 12, 7, 14, 57, 39), $o->issueDate);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2024, 12, 6, 14, 57, 39), $o->expirationDate);
+        $this->assertEquals("013B27B82DDBEDD1F74606000000000000000045", $o->serialNumber);
+        $this->assertFalse($o->isExpired);
+    }
+
+    public function testConnectivityMonitorStatusDtoDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "requestDate": "2024-05-23T09:06:03+02:00",
+            "state": "Up"
+        }';
+
+        $o = $serializer->deserialize($json, ConnectivityMonitorStatusDto::class);
+
+        $this->assertInstanceOf(ConnectivityMonitorStatusDto::class, $o);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2024, 5, 23, 9, 6, 3), $o->requestDate);
+        $this->assertEquals("Up", $o->state);
+    }
+
+    public function testIdentityDtoArrayDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '[
+            {
+                "dic": "1234567890",
+                "ico": "76543210",
+                "icdph": null,
+                "corporateBodyFullName": "Finančná správa i.n.t.",
+                "organizationUnit": {
+                    "cashRegisterCode": "88812345678900001",
+                    "cashRegisterType": "Portable",
+                    "hasRegistrationException": false,
+                    "organizationUnitName": "nepovinný názov predajne",
+                    "physicalAddress": null
+                },
+                "physicalAddress": {
+                    "country": "Slovenská republika",
+                    "streetName": "Horná",
+                    "municipality": "Štrkovec",
+                    "buildingNumber": "7",
+                    "propertyRegistrationNumber": "560",
+                    "deliveryAddress": {
+                        "postalCode": "98045"
+                    }
+                }
+            }
+        ]';
+
+        $a = $serializer->deserialize($json, IdentityDto::class);
+
+        $this->assertIsArray($a);
+        $this->assertCount(1, $a);
+        $this->assertInstanceOf(IdentityDto::class, $a[0]);
+
+        $this->assertEquals("Finančná správa i.n.t.", $a[0]->corporateBodyFullName);
+        $this->assertFalse($a[0]->organizationUnit->hasRegistrationException);
+        $this->assertEquals("98045", $a[0]->physicalAddress->deliveryAddress->postalCode);
+    }
+
+    public function testIndexTableStatusDtoDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "indexTableBlocksCount": 0,
+            "storageBlocksCount": 0
+        }';
+
+        $o = $serializer->deserialize($json, IndexTableStatusDto::class);
+
+        $this->assertInstanceOf(IndexTableStatusDto::class, $o);
+        $this->assertEquals("0", $o->indexTableBlocksCount);
+        $this->assertEquals("0", $o->storageBlocksCount);
+    }
+
+    public function testPrinterStatusDtoDeseralization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "state": "Ready",
+            "paperState": "Empty"
+        }';
+
+        $o = $serializer->deserialize($json, PrinterStatusDto::class);
+
+        $this->assertInstanceOf(PrinterStatusDto::class, $o);
+        $this->assertEquals("Ready", $o->state);
+        $this->assertEquals("Empty", $o->paperState);
+    }
+
+    public function testPrintResultDtoDeseralization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "printed": null
+        }';
+
+        $o = $serializer->deserialize($json, PrintResultDto::class);
+
+        $this->assertInstanceOf(PrintResultDto::class, $o);
+        $this->assertNull($o->printed);
+    }
+
+    public function testOpenDrawerResultDtoDeseralization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "opened": false
+        }';
+
+        $o = $serializer->deserialize($json, OpenDrawerResultDto::class);
+
+        $this->assertInstanceOf(OpenDrawerResultDto::class, $o);
+        $this->assertFalse($o->opened);
+    }
+
+    public function testEKasaProductInfoDtoDeseralization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "vendorName": "Nine Digit, s.r.o.",
+            "swid": "e6ab3b6a8074a7ae8eb7b9f0c9949893aed9fefa",
+            "ppekk": {
+                "name": "Portos eKasa",
+                "version": "v6.10"
+            },
+            "chdu": {
+                "name": "Memory Record Repository",
+                "version": "1.0"
+            }
+        }';
+
+        $o = $serializer->deserialize($json, EKasaProductInfoDto::class);
+
+        $this->assertInstanceOf(EKasaProductInfoDto::class, $o);
+        $this->assertEquals("Nine Digit, s.r.o.", $o->vendorName);
+        $this->assertEquals("Portos eKasa", $o->ppekk->name);
+        $this->assertEquals("1.0", $o->chdu->version);
+    }
+
+    public function testStorageInfoDtoDeseralization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "product": {
+                "vendorName": "Nine Digit, s.r.o.",
+                "name": "Memory Record Repository",
+                "version": "1.0",
+                "serialNumber": "-"
+            },
+            "capacity": {
+                "total": 9223372036854775807,
+                "used": 0
+            },
+            "isReadOnly": false
+        }';
+
+        $o = $serializer->deserialize($json, StorageInfoDto::class);
+
+        $this->assertInstanceOf(StorageInfoDto::class, $o);
+        $this->assertEquals("Memory Record Repository", $o->product->name);
+        $this->assertEquals("9223372036854775807", $o->capacity->total);
+        $this->assertFalse($o->isReadOnly);
+    }
+
     public function testReceiptDtoSerialization()
     {
         $serializer = new SymfonyJsonSerializer();
