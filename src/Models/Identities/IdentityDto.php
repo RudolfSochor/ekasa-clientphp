@@ -29,7 +29,7 @@ final class IdentityDto
      * ak je podnikateľ platiteľom dane z pridanej hodnoty, null ak nie je
      * @example SK1234567890
      */
-    public ?string $icDph;
+    public ?string $icdph;
 
     /**
      * Plný názov obchodného mena podnikateľa

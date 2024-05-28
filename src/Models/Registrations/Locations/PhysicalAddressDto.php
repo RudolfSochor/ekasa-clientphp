@@ -3,32 +3,37 @@
 namespace NineDigit\eKasa\Client\Models\Registrations\Locations;
 
 /**
- * TODO
+ * Poloha prenosnej registračnej pokladne vo forme fyzickej adresy.
  */
-final class LocationDto
+final class PhysicalAddressDto extends LocationDto
 {
     /**
-     * TODO
+     * Názov ulice
      */
     public string $streetName;
 
     /**
-     * TODO
+     * Názov obce
      */
     public string $municipality;
 
     /**
-     * TODO
+     * Číslo budovy
      */
     public string $buildingNumber;
 
     /**
-     * TODO
+     * Poštové smerovace číslo
      */
     public ?string $postalCode;
 
     /**
-     * TODO
+     * Číslo registrácie
      */
     public ?int $propertyRegistrationNumber;
+
+    /**
+     * Typ polohy
+     */
+    public $type = "Address";
 }

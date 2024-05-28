@@ -65,7 +65,8 @@ final class SymfonyJsonSerializer implements SerializerInterface
 
         if (!$this->serializer->supportsDecoding($format)) {
             throw new UnsupportedFormatException(
-                sprintf('Deserialization for the format "%s" is not supported.',
+                sprintf(
+                    'Deserialization for the format "%s" is not supported.',
                     $format
                 )
             );

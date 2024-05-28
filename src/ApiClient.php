@@ -16,6 +16,7 @@ use NineDigit\eKasa\Client\Models\Printers\PrinterStatusDto;
 use NineDigit\eKasa\Client\Models\Printers\PrintResultDto;
 use NineDigit\eKasa\Client\Models\Printers\TextPrintContextDto;
 use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationRequestDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\RegisterLocationResultDto;
 use NineDigit\eKasa\Client\Models\Registrations\Receipts\RegisterReceiptRequestContextDto;
 use NineDigit\eKasa\Client\Models\Registrations\Receipts\RegisterReceiptResultDto;
 use NineDigit\eKasa\Client\Models\Storage\StorageInfoDto;
@@ -163,14 +164,15 @@ final class ApiClient
     /**
      * TODO
      */
-    public function addPrint(TextPrintContextDto $printed): PrintResultDto
+    public function print(TextPrintContextDto $printed): PrintResultDto
     {
         $apiRequest = ApiRequestBuilder::createPost("/v1/printers/print")
             ->withPayload($printed)
             ->build();
         return $this->httpClient->receive($apiRequest, PrintResultDto::class);
     }
-    public function addOpenDrawer(OpenDrawerResultDto $opened): OpenDrawerResultDto
+
+    public function openDrawer(OpenDrawerResultDto $opened): OpenDrawerResultDto
     {
         $apiRequest = ApiRequestBuilder::createPost("/v1/printers/open_drawer")
             ->withPayload($opened)
@@ -207,10 +209,13 @@ final class ApiClient
 
     // Registrations
 
+    /**
+     * @var RegisterLocationResultDto[] TODO
+     */
     public function getLatestLocations(): array
     {
         $apiRequest = ApiRequestBuilder::createGet("/v1/requests/locations/current")->build();
-        return $this->httpClient->receive($apiRequest, LocationRegistrationRequestDto::class);
+        return $this->httpClient->receive($apiRequest, RegisterLocationResultDto::class);
     }
 
     /**

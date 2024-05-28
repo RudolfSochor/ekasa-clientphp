@@ -20,13 +20,6 @@ abstract class RegisterResultDto
      */
     public ?bool $isSuccessful;
 
-//    /**
-//     * Obsahuje informácie o úspešnom spracovaní požiadavky.
-//     * Obsahuje hodnotu, iba ak ak $isSuccessful je true.
-//     * @var RegisterResultResponseDto|null
-//     */
-//    public ?RegisterResultResponseDto $response;
-
     /**
      * Obsahuje informácie o chybe pri spracovaní požiadavky.
      * Obsahuje hodnotu, iba ak ak $isSuccessful je false.

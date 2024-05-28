@@ -38,8 +38,15 @@ use NineDigit\eKasa\Client\Models\Printers\PrinterStatusDto;
 use NineDigit\eKasa\Client\Models\Printers\PrintResultDto;
 use NineDigit\eKasa\Client\Models\ProblemDetails;
 use NineDigit\eKasa\Client\Models\Product\EKasaProductInfoDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationDataDto as LocationsLocationRegistrationDataDto;
 use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationRequestDto;
 use NineDigit\eKasa\Client\Models\Registrations\Locations\LocationRegistrationResposneDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\OtherLocationDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\RegisterLocationResultDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\RegisterLocationResultRequestDto;
+use NineDigit\eKasa\Client\Models\Registrations\Locations\RegisterResultDto;
+use NineDigit\eKasa\Client\Models\Registrations\Receipts\LocationRegistrationDataDto;
 use NineDigit\eKasa\Client\Models\Storage\StorageInfoDto;
 use NineDigit\eKasa\Client\Models\ValidationProblemDetails;
 use NineDigit\eKasa\Client\Serialization\SymfonyJsonSerializer;
@@ -147,9 +154,20 @@ final class SymfonyJsonSerializerTest extends TestCase
         $this->assertIsArray($a);
         $this->assertCount(1, $a);
         $this->assertInstanceOf(IdentityDto::class, $a[0]);
-
+        $this->assertEquals("1234567890", $a[0]->dic);
+        $this->assertEquals("76543210", $a[0]->ico);
+        $this->assertNull($a[0]->icdph);
         $this->assertEquals("Finančná správa i.n.t.", $a[0]->corporateBodyFullName);
+        $this->assertEquals("88812345678900001", $a[0]->organizationUnit->cashRegisterCode);
+        $this->assertEquals("Portable", $a[0]->organizationUnit->cashRegisterType);
         $this->assertFalse($a[0]->organizationUnit->hasRegistrationException);
+        $this->assertEquals("nepovinný názov predajne", $a[0]->organizationUnit->organizationUnitName);
+        $this->assertNull($a[0]->organizationUnit->physicalAddress);
+        $this->assertEquals("Slovenská republika", $a[0]->physicalAddress->country);
+        $this->assertEquals("Horná", $a[0]->physicalAddress->streetName);
+        $this->assertEquals("Štrkovec", $a[0]->physicalAddress->municipality);
+        $this->assertEquals("7", $a[0]->physicalAddress->buildingNumber);
+        $this->assertEquals("560", $a[0]->physicalAddress->propertyRegistrationNumber);
         $this->assertEquals("98045", $a[0]->physicalAddress->deliveryAddress->postalCode);
     }
 
@@ -168,7 +186,7 @@ final class SymfonyJsonSerializerTest extends TestCase
         $this->assertEquals("0", $o->storageBlocksCount);
     }
 
-    public function testPrinterStatusDtoDeseralization()
+    public function testPrinterStatusDtoDeserialization()
     {
         $serializer = new SymfonyJsonSerializer();
         $json = '{
@@ -183,7 +201,7 @@ final class SymfonyJsonSerializerTest extends TestCase
         $this->assertEquals("Empty", $o->paperState);
     }
 
-    public function testPrintResultDtoDeseralization()
+    public function testPrintResultDtoDeserialization()
     {
         $serializer = new SymfonyJsonSerializer();
         $json = '{
@@ -196,7 +214,7 @@ final class SymfonyJsonSerializerTest extends TestCase
         $this->assertNull($o->printed);
     }
 
-    public function testOpenDrawerResultDtoDeseralization()
+    public function testOpenDrawerResultDtoDeserialization()
     {
         $serializer = new SymfonyJsonSerializer();
         $json = '{
@@ -209,7 +227,7 @@ final class SymfonyJsonSerializerTest extends TestCase
         $this->assertFalse($o->opened);
     }
 
-    public function testEKasaProductInfoDtoDeseralization()
+    public function testEKasaProductInfoDtoDeserialization()
     {
         $serializer = new SymfonyJsonSerializer();
         $json = '{
@@ -229,11 +247,14 @@ final class SymfonyJsonSerializerTest extends TestCase
 
         $this->assertInstanceOf(EKasaProductInfoDto::class, $o);
         $this->assertEquals("Nine Digit, s.r.o.", $o->vendorName);
+        $this->assertEquals("e6ab3b6a8074a7ae8eb7b9f0c9949893aed9fefa", $o->swid);
         $this->assertEquals("Portos eKasa", $o->ppekk->name);
+        $this->assertEquals("v6.10", $o->ppekk->version);
+        $this->assertEquals("Memory Record Repository", $o->chdu->name);
         $this->assertEquals("1.0", $o->chdu->version);
     }
 
-    public function testStorageInfoDtoDeseralization()
+    public function testStorageInfoDtoDeserialization()
     {
         $serializer = new SymfonyJsonSerializer();
         $json = '{
@@ -253,9 +274,122 @@ final class SymfonyJsonSerializerTest extends TestCase
         $o = $serializer->deserialize($json, StorageInfoDto::class);
 
         $this->assertInstanceOf(StorageInfoDto::class, $o);
+        $this->assertEquals("Nine Digit, s.r.o.", $o->product->vendorName);
         $this->assertEquals("Memory Record Repository", $o->product->name);
+        $this->assertEquals("1.0", $o->product->version);
+        $this->assertEquals("-", $o->product->serialNumber);
         $this->assertEquals("9223372036854775807", $o->capacity->total);
+        $this->assertEquals("0", $o->capacity->used);
         $this->assertFalse($o->isReadOnly);
+    }
+
+    public function testLocationRegistrationDataDtoArrayDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '[
+            {
+                "request": {
+                    "data": {
+                        "location": {
+                            "longitude": 17.165377,
+                            "latitude": 48.148962,
+                            "$type": "GPS"
+                        },
+                        "createDate": "2024-05-27T09:11:32+02:00",
+                        "dic": "1234567890",
+                        "cashRegisterCode": "88812345678900001"
+                    },
+                    "id": "d25c7a84-3f84-4b19-88f3-84387b7cf351",
+                    "externalId": "0afa4ca5-26d5-41d8-a485-cf2ad0e7d6f0",
+                    "date": "2024-05-27T09:11:32+02:00",
+                    "sendingCount": 1
+                },
+                "response": {
+                    "processDate": "2024-05-27T09:11:32+02:00"
+                },
+                "isSuccessful": true,
+                "error": {
+                    "message": "ERROR",
+                    "code": 123
+                },
+                "$type": "Location"
+            }
+        ]';
+
+        $a = $serializer->deserialize($json, RegisterLocationResultDto::class);
+
+        $this->assertIsArray($a);
+        $this->assertCount(1, $a);
+        $this->assertInstanceOf(RegisterLocationResultDto::class, $a[0]);
+
+        $this->assertEquals(17.165377, $a[0]->request->data->location->longitude);
+        $this->assertEquals(48.148962, $a[0]->request->data->location->latitude);
+        $this->assertEquals("GPS", $a[0]->request->data->location->type);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2024, 5, 27, 9, 11, 32), $a[0]->request->data->createDate);
+        $this->assertEquals("1234567890", $a[0]->request->data->dic);
+        $this->assertEquals("88812345678900001", $a[0]->request->data->cashRegisterCode);
+        $this->assertEquals("d25c7a84-3f84-4b19-88f3-84387b7cf351", $a[0]->request->id);
+        $this->assertEquals("0afa4ca5-26d5-41d8-a485-cf2ad0e7d6f0", $a[0]->request->externalId);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2024, 5, 27, 9, 11, 32), $a[0]->request->date);
+        $this->assertEquals(1, $a[0]->request->sendingCount);
+        $this->assertEquals(DateTimeHelper::createEuropeBratislava(2024, 5, 27, 9, 11, 32), $a[0]->response->processDate);
+        $this->assertTrue($a[0]->isSuccessful);
+        $this->assertEquals("ERROR", $a[0]->error->message);
+        $this->assertEquals(123, $a[0]->error->code);
+        $this->assertEquals("Location", $a[0]->type);
+    }
+
+    public function testGeoCoordinatesDtoAsLocationDtoDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "longitude": 17.165377,
+            "latitude": 48.148962,
+            "$type": "GPS"
+        }';
+
+        $o = $serializer->deserialize($json, LocationDto::class);
+
+        $this->assertInstanceOf(LocationDto::class, $o);
+        $this->assertEquals(17.165377, $o->longitude);
+        $this->assertEquals(48.148962, $o->latitude);
+    }
+
+    public function testPhysicalAddressDtoAsLocationDtoDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "streetName": "Horná",
+            "municipality": "Štrkovec",
+            "buildingNumber": "7",
+            "postalCode": "98045",
+            "propertyRegistrationNumber": 560,
+            "$type": "Address"
+        }';
+
+        $o = $serializer->deserialize($json, LocationDto::class);
+
+        $this->assertInstanceOf(LocationDto::class, $o);
+        $this->assertEquals("Horná", $o->streetName);
+        $this->assertEquals("Štrkovec", $o->municipality);
+        $this->assertEquals("7", $o->buildingNumber);
+        $this->assertEquals("98045", $o->postalCode);
+        $this->assertEquals("560", $o->propertyRegistrationNumber);
+    }
+
+    public function testOtherLocationDtoAsLocationDtoDeserialization()
+    {
+        $serializer = new SymfonyJsonSerializer();
+        $json = '{
+            "value": "Taxi ABC EČ vozidla = BA 123 AA; odpočívadlo Zeleneč D1",
+            "$type": "Other"
+        }';
+
+        $o = $serializer->deserialize($json, LocationDto::class);
+
+        $this->assertInstanceOf(LocationDto::class, $o);
+        $this->assertEquals("Taxi ABC EČ vozidla = BA 123 AA; odpočívadlo Zeleneč D1", $o->value);
+        var_dump($o);
     }
 
     public function testReceiptDtoSerialization()
